@@ -8,7 +8,9 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
-from .utils import get_file_name
+from .utils import get_file_name, get_full_path
+
+MESSAGE_NO_FILE_CONTENT = "Request payload has no file content"
 
 
 logger = logging.getLogger(__name__)
@@ -25,17 +27,17 @@ auth = HTTPBasicAuth()
 @auth.login_required
 def upload():
     if "file" not in request.files:
-        logger.warning("Request payload has no file content")
-        return jsonify(error="Request payload has no file content"), 400
+        logger.warning(MESSAGE_NO_FILE_CONTENT)
+        return jsonify(error=MESSAGE_NO_FILE_CONTENT), 400
 
     file_ = request.files["file"]
 
     if file_.filename == "":
-        logger.warning("Request payload has no file content")
-        return jsonify(error="Request payload has no file content"), 400
+        logger.warning(MESSAGE_NO_FILE_CONTENT)
+        return jsonify(error=MESSAGE_NO_FILE_CONTENT), 400
 
     file_name = get_file_name(secure_filename(file_.filename))
-    full_path = Path("/") / app.config["UPLOAD_FOLDER"] / file_name[:2] / file_name
+    full_path = get_full_path(app.config["UPLOAD_FOLDER"], file_name)
 
     if not (parent := full_path.parent).is_dir():
         try:
@@ -66,7 +68,7 @@ def upload():
 def download(file_name: str):
     directory = Path("/") / app.config["UPLOAD_FOLDER"]
     file_path = f"{file_name[:2]}/{file_name}"
-    full_path = directory / file_path
+    full_path = get_full_path(app.config["UPLOAD_FOLDER"], file_name)
 
     if full_path.is_file():
         logger.info(f"File is sending: {full_path}")
@@ -81,7 +83,7 @@ def download(file_name: str):
 @app.route("/files/<string:file_name>", methods=["DELETE"])
 @auth.login_required
 def delete(file_name: str):
-    full_path = Path("/") / app.config["UPLOAD_FOLDER"] / file_name[:2] / file_name
+    full_path = get_full_path(app.config["UPLOAD_FOLDER"], file_name)
 
     file_info = FileInfo.query.filter_by(name=file_name).first()
 
