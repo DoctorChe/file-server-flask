@@ -37,6 +37,14 @@ def upload():
         return jsonify(error=MESSAGE_NO_FILE_CONTENT), 400
 
     file_name = get_file_name(secure_filename(file_.filename))
+
+    file_info = FileInfo.query.filter_by(name=file_name).first()
+    if file_info is not None:
+        logger.warning(
+            f"Attempt to upload an existing file: filename={file_name} username={g.current_user.name}"
+        )
+        return jsonify(error="Unable to upload file. File already exist on server"), 403
+
     full_path = get_full_path(app.config["UPLOAD_FOLDER"], file_name)
 
     if not (parent := full_path.parent).is_dir():
