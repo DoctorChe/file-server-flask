@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "file-server-flask"
+version = "0.1.0"
+description = "Simple file server"
+authors = ["DoctorChe <duncan.reg@yandex.ru>"]
+readme = "README.md"
+packages = [{include = "file_server_flask"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^2.3.2"
+flask-httpauth = "^4.8.0"
+flask-sqlalchemy = "^3.0.3"
+psycopg2-binary = "^2.9.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
