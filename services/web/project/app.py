@@ -21,11 +21,6 @@ db = SQLAlchemy(app)
 auth = HTTPBasicAuth()
 
 
-@app.route("/")
-def hello_world():
-    return jsonify(hello="world")
-
-
 @app.route("/files/", methods=["POST"])
 @auth.login_required
 def upload():
