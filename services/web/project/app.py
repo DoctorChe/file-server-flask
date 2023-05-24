@@ -57,6 +57,12 @@ def upload():
         logger.error(f"Unknown error while file saving: {full_path} | {e}")
         return jsonify(error="Unable to save file"), 500
 
+    user = User.query.filter_by(name=g.current_user.name).first()
+    file_info = FileInfo(name=file_name, user_id=user.id)
+    with app.app_context():
+        db.session.add(file_info)
+        db.session.commit()
+
     logger.info(f"File saved: {full_path}")
     return jsonify(file_name=full_path.name), 201
 
@@ -82,11 +88,21 @@ def download(file_name: str):
 def delete(file_name: str):
     full_path = Path("/") / app.config["UPLOAD_FOLDER"] / file_name[:2] / file_name
 
-    try:
-        full_path.unlink(missing_ok=False)
-    except FileNotFoundError:
-        logger.warning(f"File not found: {full_path}")
-        return jsonify(error="File not found"), 404
+    file_info = FileInfo.query.filter_by(name=file_name).first()
+
+    if file_info and file_info.user_id != g.current_user.id:
+        logger.warning(f"User is not file owner: {g.current_user} | {file_info}")
+        return jsonify(error="Unable to delete file"), 403
+    else:
+        try:
+            full_path.unlink(missing_ok=False)
+        except FileNotFoundError:
+            logger.warning(f"File not found: {full_path}")
+            return jsonify(error="File not found"), 404
+
+    with app.app_context():
+        db.session.delete(file_info)
+        db.session.commit()
 
     logger.info(f"File deleted: {full_path}")
     return jsonify(result="File deleted"), 204
@@ -105,6 +121,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
+    files = db.relationship("FileInfo", cascade="all, delete")
 
     def __init__(self, name):
         self.name = name
@@ -114,3 +131,9 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+
+class FileInfo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
