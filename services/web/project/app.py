@@ -1,4 +1,3 @@
-import logging
 import os
 
 from pathlib import Path
@@ -11,11 +10,6 @@ from .utils import get_file_name, get_full_path
 
 
 MESSAGE_NO_FILE_CONTENT = "Request payload has no file content"
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s %(message)s")
-
 
 app = create_app(os.getenv("CONFIG_TYPE"))
 
