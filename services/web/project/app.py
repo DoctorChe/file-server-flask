@@ -1,26 +1,24 @@
 import logging
+import os
 
 from pathlib import Path
 
-from flask import Flask, jsonify, request, send_from_directory, g
-from flask_httpauth import HTTPBasicAuth
-from flask_sqlalchemy import SQLAlchemy
+from flask import jsonify, request, send_from_directory, g
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
+from . import auth, db, create_app
 from .utils import get_file_name, get_full_path
 
-MESSAGE_NO_FILE_CONTENT = "Request payload has no file content"
 
+MESSAGE_NO_FILE_CONTENT = "Request payload has no file content"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logging.basicConfig(format="%(asctime)s %(message)s")
 
-app = Flask(__name__)
-app.config.from_object("project.config.Config")
-db = SQLAlchemy(app)
-auth = HTTPBasicAuth()
+
+app = create_app(os.getenv("CONFIG_TYPE"))
 
 
 @app.route("/files/", methods=["POST"])
