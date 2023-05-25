@@ -5,7 +5,6 @@ from pathlib import Path
 
 from flask import jsonify, request, send_from_directory, g
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
 
 from . import auth, db, create_app
 from .utils import get_file_name, get_full_path
@@ -34,7 +33,8 @@ def upload():
         logger.warning(MESSAGE_NO_FILE_CONTENT)
         return jsonify(error=MESSAGE_NO_FILE_CONTENT), 400
 
-    file_name = get_file_name(secure_filename(file_.filename))
+    file_bytes = file_.stream.read()
+    file_name = get_file_name(file_bytes)
 
     file_info = FileInfo.query.filter_by(name=file_name).first()
     if file_info is not None:
@@ -53,7 +53,8 @@ def upload():
             return jsonify(error="Unable to save file"), 500
 
     try:
-        file_.save(full_path)
+        with open(full_path, 'wb') as f:
+            f.write(file_bytes)
     except PermissionError as e:
         logger.error(f"Permission error while file saving: {parent} | {e}")
     except Exception as e:
