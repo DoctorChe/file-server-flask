@@ -106,6 +106,7 @@ def delete(file_name: str):
             return jsonify(error="File not found"), 404
 
     with app.app_context():
+        file_info = db.session.merge(file_info)
         db.session.delete(file_info)
         db.session.commit()
 
