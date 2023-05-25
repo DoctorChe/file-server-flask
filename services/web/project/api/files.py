@@ -47,7 +47,7 @@ def upload():
             return jsonify(error="Unable to save file"), 500
 
     try:
-        with open(full_path, 'wb') as f:
+        with open(full_path, "wb") as f:
             f.write(file_bytes)
     except PermissionError as e:
         logger.error(f"Permission error while file saving: {parent} | {e}")

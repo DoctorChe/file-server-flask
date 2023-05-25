@@ -14,6 +14,7 @@ def create_db():
         db.drop_all()
         db.create_all()
         db.session.commit()
+    print("Created database")
 
 
 @cli.command("seed_db")
@@ -26,6 +27,7 @@ def seed_db():
         user.set_password(app.config["USER_PASSWORD"])
         db.session.add(user)
         db.session.commit()
+    print("Seeded database")
 
 
 if __name__ == "__main__":
